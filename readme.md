@@ -4,7 +4,6 @@ MysqliDb -- Simple MySQLi wrapper with prepared statements
 ### Table of Contents
 
 **[Initialization](#initialization)**  
-**[Objects mapping](#objects-mapping)**  
 **[Insert Query](#insert-query)**  
 **[Update Query](#update-query)**  
 **[Select Query](#select-query)**  
