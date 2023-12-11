@@ -1,8 +1,14 @@
 {
-    "name": "thingengineer/mysqli-database-class",
+    "name": "alin-o/mysqli-database-class",
     "description": "PHP MySQL Wrapper and object mapper which utilizes MySQLi and prepared statements",
     "license": "GPL-3.0-or-later",
     "authors": [
+        {
+            "name": "Alin OLteanu",
+            "email": "oalin79@gmail.com",
+            "homepage": "https://github.com/alin-o",
+            "role": "Developer"
+        },
         {
             "name": "Josh Campbell",
             "email": "josh.lee.campbell@gmail.com",
@@ -17,9 +23,12 @@
         }
     ],
     "require": {
-        "php": ">=5.3.0"
+        "php": ">=7.4.0"
     },
     "autoload": {
-        "files": ["MysqliDb.php", "dbObject.php"]
+        "files": [
+            "MysqliDb.php",
+            "dbObject.php"
+        ]
     }
 }
