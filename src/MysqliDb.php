@@ -313,7 +313,7 @@ class MysqliDb
     public function connect($connectionName = 'default')
     {
         if (!isset($this->connectionsSettings[$connectionName]))
-            throw new Exception('Connection profile not set');
+            throw new DbException('Connection profile not set');
 
         $pro = $this->connectionsSettings[$connectionName];
         $params = array_values($pro);
@@ -324,14 +324,14 @@ class MysqliDb
         }
 
         if (empty($pro['host']) && empty($pro['socket'])) {
-            throw new Exception('MySQL host or socket is not set');
+            throw new DbException('MySQL host or socket is not set');
         }
 
-        $mysqlic = new ReflectionClass('mysqli');
+        $mysqlic = new \ReflectionClass('mysqli');
         $mysqli = $mysqlic->newInstanceArgs($params);
 
         if ($mysqli->connect_error) {
-            throw new Exception('Connect Error ' . $mysqli->connect_errno . ': ' . $mysqli->connect_error, $mysqli->connect_errno);
+            throw new DbException('Connect Error ' . $mysqli->connect_errno . ': ' . $mysqli->connect_error, $mysqli->connect_errno);
         }
 
         if (!empty($charset)) {
@@ -361,7 +361,7 @@ class MysqliDb
     public function connection($name)
     {
         if (!isset($this->connectionsSettings[$name]))
-            throw new Exception('Connection ' . $name . ' was not added.');
+            throw new DbException('Connection ' . $name . ' was not added.');
 
         $this->defConnectionName = $name;
         return $this;
@@ -414,7 +414,7 @@ class MysqliDb
     /**
      * A method to get mysqli object or create it in case needed
      *
-     * @return mysqli
+     * @return \mysqli
      * @throws Exception
      */
     public function mysqli()
@@ -548,7 +548,7 @@ class MysqliDb
             return $this->queryUnprepared($query);
         }
 
-        throw new Exception(sprintf('Unprepared Query Failed, ERRNO: %u (%s)', $this->mysqli()->errno, $this->mysqli()->error), $this->mysqli()->errno);
+        throw new DbException(sprintf('Unprepared Query Failed, ERRNO: %u (%s)', $this->mysqli()->errno, $this->mysqli()->error), $this->mysqli()->errno);
     }
 
     /**
@@ -721,7 +721,7 @@ class MysqliDb
         foreach ($options as $option) {
             $option = strtoupper($option);
             if (!in_array($option, $allowedOptions)) {
-                throw new Exception('Wrong query option: ' . $option);
+                throw new DbException('Wrong query option: ' . $option);
             }
 
             if ($option == 'MYSQLI_NESTJOIN') {
@@ -1114,7 +1114,7 @@ class MysqliDb
         $joinType = strtoupper(trim($joinType));
 
         if ($joinType && !in_array($joinType, $allowedTypes)) {
-            throw new Exception('Wrong JOIN type: ' . $joinType);
+            throw new DbException('Wrong JOIN type: ' . $joinType);
         }
 
         if (!is_object($joinTable)) {
@@ -1145,7 +1145,7 @@ class MysqliDb
         // We have to check if the file exists
         if (!file_exists($importFile)) {
             // Throw an exception
-            throw new Exception("importCSV -> importFile " . $importFile . " does not exists!");
+            throw new DbException("importCSV -> importFile " . $importFile . " does not exists!");
         }
 
         // Define the default values
@@ -1216,7 +1216,7 @@ class MysqliDb
         // We have to check if the file exists
         if (!file_exists($importFile)) {
             // Does not exists
-            throw new Exception("loadXml: Import file does not exists");
+            throw new DbException("loadXml: Import file does not exists");
             return;
         }
 
@@ -1282,7 +1282,7 @@ class MysqliDb
 
 
         if (empty($orderbyDirection) || !in_array($orderbyDirection, $allowedDirection)) {
-            throw new Exception('Wrong order direction: ' . $orderbyDirection);
+            throw new DbException('Wrong order direction: ' . $orderbyDirection);
         }
 
         if (is_array($customFieldsOrRegExp)) {
@@ -1293,7 +1293,7 @@ class MysqliDb
         } elseif (is_string($customFieldsOrRegExp)) {
             $orderByField = $orderByField . " REGEXP '" . $customFieldsOrRegExp . "'";
         } elseif ($customFieldsOrRegExp !== null) {
-            throw new Exception('Wrong custom field or Regular Expression: ' . $customFieldsOrRegExp);
+            throw new DbException('Wrong custom field or Regular Expression: ' . $customFieldsOrRegExp);
         }
 
         $this->_orderBy[$orderByField] = $orderbyDirection;
@@ -1339,7 +1339,7 @@ class MysqliDb
                 break;
             default:
                 // Else throw an exception
-                throw new Exception("Bad lock type: Can be either READ or WRITE");
+                throw new DbException("Bad lock type: Can be either READ or WRITE");
                 break;
         }
         return $this;
@@ -1394,7 +1394,7 @@ class MysqliDb
         }
         // Something went wrong
         else {
-            throw new Exception("Locking of table " . $table . " failed", $errno);
+            throw new DbException("Locking of table " . $table . " failed", $errno);
         }
 
         // Return the success value
@@ -1428,7 +1428,7 @@ class MysqliDb
         }
         // Something went wrong
         else {
-            throw new Exception("Unlocking of tables failed", $errno);
+            throw new DbException("Unlocking of tables failed", $errno);
         }
 
 
@@ -1604,7 +1604,7 @@ class MysqliDb
      *                               or only $count
      * @param array     $tableData   Should contain an array of data for updating the database.
      *
-     * @return mysqli_stmt|bool Returns the $stmt object.
+     * @return \mysqli_stmt|bool Returns the $stmt object.
      * @throws Exception
      */
     protected function _buildQuery($numRows = null, $tableData = null)
@@ -1647,12 +1647,12 @@ class MysqliDb
      * This helper method takes care of prepared statements' "bind_result method
      * , when the number of variables to pass is unknown.
      *
-     * @param mysqli_stmt $stmt Equal to the prepared statement object.
+     * @param \mysqli_stmt $stmt Equal to the prepared statement object.
      *
      * @return array|string The results of the SQL fetch.
      * @throws Exception
      */
-    protected function _dynamicBindResults(mysqli_stmt $stmt)
+    protected function _dynamicBindResults(\mysqli_stmt $stmt)
     {
         $parameters = array();
         $results = array();
@@ -1699,10 +1699,10 @@ class MysqliDb
 
         while ($stmt->fetch()) {
             if ($this->returnType == 'object') {
-                $result = new stdClass();
+                $result = new \stdClass();
                 foreach ($row as $key => $val) {
                     if (is_array($val)) {
-                        $result->$key = new stdClass();
+                        $result->$key = new \stdClass();
                         foreach ($val as $k => $v) {
                             $result->$key->$k = $v;
                         }
@@ -1807,7 +1807,7 @@ class MysqliDb
             }
 
             // Subquery value
-            if ($value instanceof \MysqliDb) {
+            if ($value instanceof MysqliDb) {
                 $this->_query .= $this->_buildPair("", $value) . ", ";
                 continue;
             }
@@ -2037,7 +2037,7 @@ class MysqliDb
      * Method attempts to prepare the SQL query
      * and throws an error if there was a problem.
      *
-     * @return mysqli_stmt
+     * @return \mysqli_stmt
      * @throws Exception
      */
     protected function _prepareQuery()
@@ -2060,7 +2060,7 @@ class MysqliDb
         $query = $this->_query;
         $errno = $this->mysqli()->errno;
         $this->reset();
-        throw new Exception(sprintf('%s query: %s', $error, $query), $errno);
+        throw new DbException(sprintf('%s query: %s', $error, $query), $errno);
     }
 
     /**
@@ -2208,7 +2208,7 @@ class MysqliDb
             }
 
             if (!in_array($type, array_keys($types))) {
-                throw new Exception("invalid interval type in '{$diff}'");
+                throw new DbException("invalid interval type in '{$diff}'");
             }
 
             $func .= " " . $incr . " interval " . $items . " " . $types[$type] . " ";
@@ -2244,7 +2244,7 @@ class MysqliDb
     public function inc($num = 1)
     {
         if (!is_numeric($num)) {
-            throw new Exception('Argument supplied to inc must be a number');
+            throw new DbException('Argument supplied to inc must be a number');
         }
         return array("[I]" => "+" . $num);
     }
@@ -2260,7 +2260,7 @@ class MysqliDb
     public function dec($num = 1)
     {
         if (!is_numeric($num)) {
-            throw new Exception('Argument supplied to dec must be a number');
+            throw new DbException('Argument supplied to dec must be a number');
         }
         return array("[I]" => "-" . $num);
     }
