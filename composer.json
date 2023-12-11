@@ -31,5 +31,6 @@
             "dbObject.php"
         ]
     },
+    "minimum-stability": "stable",
     "version": "2.9.4"
 }
