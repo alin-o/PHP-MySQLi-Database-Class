@@ -5,7 +5,7 @@
  *
  * @category  Database Access
  * @package   MysqliDb
- * @author    Alin Olteanu <alin@regunsoft.ro>
+ * @author    Alin Olteanu <oalin79@gmail.com>
  * @author    Jeffery Way <jeffrey@jeffrey-way.com>
  * @author    Josh Campbell <jcampbell@ajillion.com>
  * @author    Alexander V. Butenko <a.butenka@gmail.com>
