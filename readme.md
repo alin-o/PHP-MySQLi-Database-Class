@@ -1,4 +1,4 @@
-MysqliDb -- Simple MySQLi wrapper and object mapper with prepared statements
+MysqliDb -- Simple MySQLi wrapper with prepared statements
 <hr>
 
 ### Table of Contents
@@ -116,10 +116,6 @@ To select database use connection() method
 ```php
 $users = $db->connection('slave')->get('users');
 ```
-
-### Objects mapping
-dbObject.php is an object mapping library built on top of mysqliDb to provide model representation functionality.
-See <a href='dbObject.md'>dbObject manual for more information</a>
 
 ### Insert Query
 Simple example
@@ -279,6 +275,15 @@ foreach ($logins as $login)
     echo $login;
 ```
 
+### Select from View
+use getView() instead get() when reading from views:
+```php
+$products = $db->getView("products_view");
+// select login from users limit 5
+foreach ($logins as $login)
+    echo $login;
+```
+
 ### Insert Data
 You can also load .CSV or .XML data into a specific table.
 To insert .csv data, use the following syntax:
@@ -343,6 +348,17 @@ $page = 1;
 // set page limit to 2 results per page. 20 by default
 $db->pageLimit = 2;
 $products = $db->arraybuilder()->paginate("products", $page);
+echo "showing $page out of " . $db->totalPages;
+
+```
+
+### Pagination - views
+Use paginateView() instead of getView() to fetch paginated result
+```php
+$page = 1;
+// set page limit to 2 results per page. 20 by default
+$db->pageLimit = 2;
+$products = $db->arraybuilder()->paginate("products_view", $page);
 echo "showing $page out of " . $db->totalPages;
 
 ```
