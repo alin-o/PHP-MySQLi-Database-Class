@@ -26,11 +26,9 @@
         "php": ">=7.4.0"
     },
     "autoload": {
-        "files": [
-            "MysqliDb.php",
-            "dbObject.php"
-        ]
+        "psr-4": {
+            "AlinO\\MysqliDb\\": "src"
+        }
     },
-    "minimum-stability": "stable",
-    "version": "2.9.4"
+    "version": "3.0.0"
 }
