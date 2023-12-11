@@ -1,5 +1,7 @@
 <?php
 
+namespace AlinO\Db;
+
 /**
  * MysqliDb Class
  *
