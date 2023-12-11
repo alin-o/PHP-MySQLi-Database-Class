@@ -27,7 +27,7 @@
     },
     "autoload": {
         "psr-4": {
-            "AlinO\\MysqliDb\\": "src"
+            "AlinO\\Db\\": "src"
         }
     },
     "version": "3.0.0"
