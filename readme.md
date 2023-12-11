@@ -279,8 +279,8 @@ use getView() instead get() when reading from views:
 ```php
 $products = $db->getView("products_view");
 // select login from users limit 5
-foreach ($logins as $login)
-    echo $login;
+foreach ($products as $product)
+    print_r ($product);
 ```
 
 ### Insert Data
