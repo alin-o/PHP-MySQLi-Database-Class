@@ -1,6 +1,6 @@
 {
     "name": "alin-o/mysqli-database-class",
-    "description": "PHP MySQL Wrapper and object mapper which utilizes MySQLi and prepared statements",
+    "description": "PHP MySQL Wrapper which utilizes MySQLi and prepared statements",
     "license": "GPL-3.0-or-later",
     "authors": [
         {
