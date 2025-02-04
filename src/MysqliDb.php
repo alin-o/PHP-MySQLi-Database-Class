@@ -14,11 +14,7 @@ namespace AlinO\Db;
  * @copyright Copyright (c) 2010-2017
  * @license   http://opensource.org/licenses/gpl-3.0.html GNU Public License
  * @link      http://github.com/alin-o/PHP-MySQLi-Database-Class
-<<<<<<< HEAD
- * @version   3.1.0
-=======
- * @version   3.0.0
->>>>>>> 737dcce (psr4)
+ * @version   3.0.1
  */
 
 class MysqliDb
@@ -827,21 +823,12 @@ class MysqliDb
     /**
      * A convenient SELECT COLUMN function to get a single column value from one row
      *
-<<<<<<< HEAD
-     * @param string    $tableName The name of the database table to work with.
-     * @param string    $column    The desired column
-     * @param int|null  $limit     Limit of rows to select. Use null for unlimited. 1 by default
-     *
-     * @return mixed    Contains the value of a returned column / array of values
-     * @throws Exception
-=======
      * @param string $tableName The name of the database table to work with.
      * @param string $column    The desired column
      * @param int    $limit     optional Limit of rows to select. Use null for unlimited..1 by default
      *
      * @return mixed Contains the value of a returned column / array of values
      * @throws DbException
->>>>>>> ea60d89 (comments)
      */
     public function getValue($tableName, $column, $limit = 1)
     {
