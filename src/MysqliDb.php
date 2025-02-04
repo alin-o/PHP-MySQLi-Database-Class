@@ -236,12 +236,20 @@ class MysqliDb
      */
 
     public $pageLimit = 20;
+
     /**
      * Variable that holds total pages count of last paginate() query
      *
      * @var int
      */
     public $totalPages = 0;
+
+    /**
+     * Variable that holds currrent page of last paginate() query
+     *
+     * @var int
+     */
+    public $currentPage = 1;
 
     /**
      * @var array connections settings [profile_name=>[same_as_contruct_args]]
@@ -2455,22 +2463,62 @@ class MysqliDb
     }
 
     /**
-     * Pagination wrapper to get()
+     * read paginated results
      *
      * @access public
      *
-     * @param string       $table  The name of the database table to work with
+     * @param string       $tableName  The name of the database table to work with
      * @param int          $page   Page number
-     * @param array|string $fields Array or coma separated list of fields to fetch
+     * @param array|string $columns Array or coma separated list of fields to fetch
      *
      * @return array
      * @throws DbException
      */
-    public function paginate($table, $page, $fields = null)
+    public function paginate($tableName, $page, $columns = '*')
     {
+        if ($page < 1) {
+            $page = 1;
+        }
+        if (empty($columns)) {
+            $columns = '*';
+        }
+
+        $column = is_array($columns) ? implode(', ', $columns) : $columns;
+
+        if (strpos($tableName, '.') === false) {
+            $this->_tableName = self::$prefix . $tableName;
+        } else {
+            $this->_tableName = $tableName;
+        }
+
+        $this->withTotalCount();
+        $this->_query = 'SELECT ' . implode(' ', $this->_queryOptions) . ' ' .
+            $column . " FROM " . $this->_tableName;
+
         $offset = $this->pageLimit * ($page - 1);
-        $res = $this->withTotalCount()->get($table, array($offset, $this->pageLimit), $fields);
+        $stmt = $this->_buildQuery([$offset, $this->pageLimit]);
+        $stmt->execute();
+        $this->_stmtError = $stmt->error;
+        $this->_stmtErrno = $stmt->errno;
+        $res = $this->_dynamicBindResults($stmt);
+
         $this->totalPages = ceil($this->totalCount / $this->pageLimit);
+        if ($this->totalPages < $page) {
+            $page = $this->totalPages;
+            if ($page > 0) {
+                $offset = $this->pageLimit * ($page - 1);
+                $this->_bindParams = array('');
+                $this->_query = 'SELECT ' . implode(' ', $this->_queryOptions) . ' ' .
+                    $column . " FROM " . $this->_tableName;
+                $stmt = $this->_buildQuery([$offset, $this->pageLimit]);
+                $stmt->execute();
+                $this->_stmtError = $stmt->error;
+                $this->_stmtErrno = $stmt->errno;
+                $res = $this->_dynamicBindResults($stmt);
+            }
+        }
+        $this->reset();
+        $this->currentPage = $page;
         return $res;
     }
 
