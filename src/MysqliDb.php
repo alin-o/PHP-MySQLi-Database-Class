@@ -14,7 +14,7 @@ namespace AlinO\Db;
  * @copyright Copyright (c) 2010-2017
  * @license   http://opensource.org/licenses/gpl-3.0.html GNU Public License
  * @link      http://github.com/alin-o/PHP-MySQLi-Database-Class
- * @version   3.0.0
+ * @version   3.0.1
  */
 
 class MysqliDb
