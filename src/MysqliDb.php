@@ -876,7 +876,7 @@ class MysqliDb
      * @return bool|array Boolean indicating the insertion failed (false), else return id-array ([int])
      * @throws DbException
      */
-    public function insertMulti($tableName, array $multiInsertData, array $dataKeys = null)
+    public function insertMulti($tableName, array $multiInsertData, array $dataKeys = [])
     {
         // only auto-commit our inserts, if no transaction is currently running
         $autoCommit = (isset($this->_transaction_in_progress) ? !$this->_transaction_in_progress : true);
@@ -887,7 +887,7 @@ class MysqliDb
         }
 
         foreach ($multiInsertData as $insertData) {
-            if ($dataKeys !== null) {
+            if (!empty($dataKeys)) {
                 // apply column-names if given, else assume they're already given in the data
                 $insertData = array_combine($dataKeys, $insertData);
             }
