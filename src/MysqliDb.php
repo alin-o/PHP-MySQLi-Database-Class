@@ -11,10 +11,10 @@ namespace AlinO\Db;
  * @author    Jeffery Way <jeffrey@jeffrey-way.com>
  * @author    Josh Campbell <jcampbell@ajillion.com>
  * @author    Alexander V. Butenko <a.butenka@gmail.com>
- * @copyright Copyright (c) 2010-2017
+ * @copyright Copyright (c) 2010-2025
  * @license   http://opensource.org/licenses/gpl-3.0.html GNU Public License
  * @link      http://github.com/alin-o/PHP-MySQLi-Database-Class
- * @version   3.0.1
+ * @version   3.1.0
  */
 
 class MysqliDb
@@ -220,9 +220,9 @@ class MysqliDb
     /**
      * Variables for query execution tracing
      */
-    protected $traceStartQ;
-    protected $traceEnabled;
-    protected $traceStripPrefix;
+    protected $traceStartQ = 0;
+    protected $traceEnabled = false;
+    protected $traceStripPrefix = '';
     public $trace = array();
 
     /**
@@ -263,6 +263,9 @@ class MysqliDb
      * @var bool Operations in transaction indicator
      */
     protected $_transaction_in_progress = false;
+
+    protected ?string $modelTable = null;
+    protected ?string $modelSelect = null;
 
     /**
      * @param string $host
@@ -471,6 +474,8 @@ class MysqliDb
         $this->_lastInsertId = null;
         $this->_updateColumns = null;
         $this->_mapKey = null;
+        $this->modelSelect = null;
+        $this->modelTable = null;
         if (!$this->_transaction_in_progress) {
             $this->defConnectionName = 'default';
         }
@@ -566,13 +571,14 @@ class MysqliDb
     {
         $query = str_replace(PHP_EOL, '', $query);
         $query = preg_replace('/\s+/', ' ', $query);
-        preg_match_all("/(from|into|update|join) [\\'\\´]?([a-zA-Z0-9_-]+)[\\'\\´]?/i", $query, $matches);
+        preg_match_all("/(from|into|update|join|describe) [\\'\\´\\`]?([a-zA-Z0-9_-]+)[\\'\\´\\`]?/i", $query, $matches);
         list($from_table, $from, $table) = $matches;
 
-        if (isset($table[0]) && null !== self::$prefix . $table[0]) {
-            return str_replace($table[0], self::$prefix . $table[0], $query);
-        }
-        return $query;
+        // Check if there are matches
+        if (empty($table[0]))
+            return $query;
+
+        return str_replace($table[0], self::$prefix . $table[0], $query);
     }
 
     /**
@@ -764,10 +770,16 @@ class MysqliDb
      * @return array|MysqliDb Contains the returned rows from the select query.
      * @throws DbException
      */
-    public function get($tableName, $numRows = null, $columns = '*')
+    public function get(string $tableName = null, $numRows = null, string $columns = null)
     {
+        if (empty($tableName)) {
+            $tableName = $this->modelTable;
+        }
+        if (empty($tableName)) {
+            throw new DbException("Table not defined");
+        }
         if (empty($columns)) {
-            $columns = '*';
+            $columns = $this->modelSelect ?? '*';
         }
 
         $column = is_array($columns) ? implode(', ', $columns) : $columns;
@@ -804,7 +816,7 @@ class MysqliDb
      * @return array Contains the returned rows from the select query.
      * @throws DbException
      */
-    public function getOne($tableName, $columns = '*')
+    public function getOne(string $tableName, string $columns = null)
     {
         $res = $this->get($tableName, 1, $columns);
 
@@ -849,6 +861,53 @@ class MysqliDb
             $newRes[] = $res[$i]['retval'];
         }
         return $newRes;
+    }
+
+    /**
+     * A convenient SELECT COLUMN function to get a single column value from one row of the predefined table
+     *
+     * @param string $column    The desired column
+     * @param int    $limit     optional Limit of rows to select. Use null for unlimited..1 by default
+     *
+     * @return mixed Contains the value of a returned column / array of values
+     * @throws DbException
+     */
+    public function getColumn($column, $limit = 1)
+    {
+        $tableName = $this->modelTable;
+        if (empty($tableName)) {
+            throw new DbException("Table not defined");
+        }
+        $res = $this->ArrayBuilder()->get($tableName, $limit, "{$column} AS retval");
+
+        if (!$res) {
+            return null;
+        }
+
+        if ($limit == 1) {
+            if (isset($res[0]["retval"])) {
+                return $res[0]["retval"];
+            }
+            return null;
+        }
+
+        $newRes = array();
+        for ($i = 0; $i < $this->count; $i++) {
+            $newRes[] = $res[$i]['retval'];
+        }
+        return $newRes;
+    }
+
+    /**
+     * Sets the model table and select statement for the database operations.
+     * 
+     * @param string $tableName The name of the table.
+     * @param string|null $select The select statement.
+     */
+    public function setModel(string $tableName, string $select = null)
+    {
+        $this->modelTable = $tableName;
+        $this->modelSelect = $select;
     }
 
     /**
@@ -975,8 +1034,16 @@ class MysqliDb
      * @return bool Indicates success. 0 or 1.
      * @throws DbException
      */
-    public function delete($tableName, $numRows = null)
+    public function delete($tableName = null, $numRows = null)
     {
+        if (empty($tableName)) {
+            $tableName = $this->modelTable;
+        }
+
+        if (empty($tableName)) {
+            throw new DbException("Table not defined");
+        }
+
         if ($this->isSubQuery) {
             return;
         }
@@ -1727,7 +1794,11 @@ class MysqliDb
             }
             $this->count++;
             if ($this->_mapKey) {
-                $results[$row[$this->_mapKey]] = count($row) > 2 ? $result : end($result);
+                if (count($row) < 3 && $this->returnType == 'object') {
+                    $res = new \ArrayIterator($result);
+                    $res->seek($res->count() - 1);
+                    $results[$row[$this->_mapKey]] = $res->current();
+                } else $results[$row[$this->_mapKey]] = count($row) > 2 ? $result : end($result);
             } else {
                 array_push($results, $result);
             }
@@ -2380,7 +2451,7 @@ class MysqliDb
      *
      * @return MysqliDb
      */
-    public function setTrace($enabled, $stripPrefix = null)
+    public function setTrace($enabled, $stripPrefix = '')
     {
         $this->traceEnabled = $enabled;
         $this->traceStripPrefix = $stripPrefix;
