@@ -204,6 +204,13 @@ class MysqliDb
     protected $_forUpdate = false;
 
     /**
+     * FOR UPDATE SKIP LOCKED flag
+     *
+     * @var bool
+     */
+    protected $_forUpdateSkipLocked = false;
+
+    /**
      * LOCK IN SHARE MODE flag
      *
      * @var bool
@@ -469,6 +476,7 @@ class MysqliDb
         $this->returnType = 'array';
         $this->_nestJoin = false;
         $this->_forUpdate = false;
+        $this->_forUpdateSkipLocked = false;
         $this->_lockInShareMode = false;
         $this->_tableName = '';
         $this->_lastInsertId = null;
@@ -720,6 +728,7 @@ class MysqliDb
             'QUICK',
             'MYSQLI_NESTJOIN',
             'FOR UPDATE',
+            'FOR UPDATE SKIP LOCKED',
             'LOCK IN SHARE MODE'
         );
 
@@ -737,6 +746,8 @@ class MysqliDb
                 $this->_nestJoin = true;
             } elseif ($option == 'FOR UPDATE') {
                 $this->_forUpdate = true;
+            } elseif ($option == 'FOR UPDATE SKIP LOCKED') {
+                $this->_forUpdateSkipLocked = true;
             } elseif ($option == 'LOCK IN SHARE MODE') {
                 $this->_lockInShareMode = true;
             } else {
@@ -1691,6 +1702,9 @@ class MysqliDb
 
         if ($this->_forUpdate) {
             $this->_query .= ' FOR UPDATE';
+        }
+        if ($this->_forUpdateSkipLocked) {
+            $this->_query .= ' FOR UPDATE SKIP LOCKED';
         }
         if ($this->_lockInShareMode) {
             $this->_query .= ' LOCK IN SHARE MODE';
