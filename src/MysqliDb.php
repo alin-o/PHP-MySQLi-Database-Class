@@ -271,6 +271,7 @@ class MysqliDb
      */
     protected $_transaction_in_progress = false;
 
+    protected ?string $modelClass = null;
     protected ?string $modelTable = null;
     protected ?string $modelSelect = null;
 
@@ -842,12 +843,19 @@ class MysqliDb
         return null;
     }
 
-    public function first(string $tableName = null, string $columns = null)
+    /**
+     * A convenient function to get a model instance of one record.
+     * Requires a previous setModel() call
+     */
+    public function first(): ?object
     {
-        $res = $this->get($tableName, 1, $columns);
+        if (empty($this->modelClass)) {
+            return null;
+        }
+        $res = $this->get($this->modelTable, 1, $this->modelSelect);
 
         if (is_array($res) && isset($res[0])) {
-            return $res[0];
+            return new $this->modelClass($res[0]);
         }
 
         return null;
@@ -923,11 +931,13 @@ class MysqliDb
     /**
      * Sets the table and select statement for the next database operation.
      * 
+     * @param string $modelClass Class of the model to instatiate with first()
      * @param string $tableName The name of the table.
      * @param string|null $select The select statement.
      */
-    public function setModel(string $tableName, string $select = null)
+    public function setModel(string $modelClass, string $tableName, string $select = null)
     {
+        $this->modelClass = $modelClass;
         $this->modelTable = $tableName;
         $this->modelSelect = $select;
         return $this;

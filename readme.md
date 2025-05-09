@@ -267,15 +267,18 @@ foreach ($logins as $login)
     echo $login;
 ```
 
-### Presetting table and columns
+### Presetting model and/or table and columns
 you can use setModel() or table() and select() to prefill the table and selected columns for simple queries
 ```php
 $activeUsers = $db->where("active", 1)->table("users")->select("id, username")->get();
 // is equivalent to
 $activeUsers = $db->where("active", 1)->get("users", null, "id, username");
 // is and to
-$db->setModel("users", "id, username");
+$db->setModel("App\\Models\\User", "users", "id, username");
 $activeUsers = $db->where("active", 1)->get();
+// to get an instance of a user
+$db->setModel("App\\Models\\User", "users", "id, username");
+$user = $db->where("id", 1)->first();
 ```
 
 ### Select from View
@@ -356,7 +359,7 @@ echo "showing $page out of " . $db->totalPages;
 
 Use page() with preset table and columns
 ```php
-$db->setModel("users", "id, username");
+$db->setModel("App\\Models\\User", "users", "id, username");
 $activeUsers = $db->where("active", 1)->page($page);
 // is equivalent to
 $activeUsers = $db->where("active", 1)->paginate("users", $page, "id, username");
