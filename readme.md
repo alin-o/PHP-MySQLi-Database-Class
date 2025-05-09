@@ -26,13 +26,6 @@ MysqliDb -- Simple MySQLi wrapper with prepared statements
 **[Error Helpers](#error-helpers)**  
 **[Table Locking](#table-locking)**  
 
-## Support Me
-
-This software is developed during my free time and I will be glad if somebody will support me.
-
-Everyone's time should be valuable, so please consider donating.
-
-[Donate with paypal](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=a%2ebutenka%40gmail%2ecom&lc=DO&item_name=mysqlidb&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted)
 
 ### Installation
 To utilize this class, first import MysqliDb.php into your project, and require it.
@@ -274,6 +267,17 @@ foreach ($logins as $login)
     echo $login;
 ```
 
+### Presetting table and columns
+you can use setModel() or table() and select() to prefill the table and selected columns for simple queries
+```php
+$activeUsers = $db->where("active", 1)->table("users")->select("id, username")->get();
+// is equivalent to
+$activeUsers = $db->where("active", 1)->get("users", null, "id, username");
+// is and to
+$db->setModel("users", "id, username");
+$activeUsers = $db->where("active", 1)->get();
+```
+
 ### Select from View
 use getView() instead get() when reading from views:
 ```php
@@ -346,9 +350,16 @@ Use paginate() instead of get() to fetch paginated result
 $page = 1;
 // set page limit to 2 results per page. 20 by default
 $db->pageLimit = 2;
-$products = $db->arraybuilder()->paginate("products", $page);
+$products = $db->arraybuilder()->paginate("products", $page, "id, name, price");
 echo "showing $page out of " . $db->totalPages;
+```
 
+Use page() with preset table and columns
+```php
+$db->setModel("users", "id, username");
+$activeUsers = $db->where("active", 1)->page($page);
+// is equivalent to
+$activeUsers = $db->where("active", 1)->paginate("users", $page, "id, username");
 ```
 
 ### Pagination - views

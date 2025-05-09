@@ -910,7 +910,7 @@ class MysqliDb
     }
 
     /**
-     * Sets the model table and select statement for the database operations.
+     * Sets the table and select statement for the next database operation.
      * 
      * @param string $tableName The name of the table.
      * @param string|null $select The select statement.
@@ -919,6 +919,31 @@ class MysqliDb
     {
         $this->modelTable = $tableName;
         $this->modelSelect = $select;
+        return $this;
+    }
+
+    /**
+     * Set the table for the next database operation.
+     *
+     * @param string $tableName The name of the table.
+     * @return MysqliDb
+     */
+    public function from(string $tableName)
+    {
+        $this->modelTable = $tableName;
+        return $this;
+    }
+
+    /**
+     * Set the columns for the next database SELECT operation.
+     *
+     * @param string $select The select statement.
+     * @return MysqliDb
+     */
+    public function select(string $select)
+    {
+        $this->modelSelect = $select;
+        return $this;
     }
 
     /**
@@ -2587,6 +2612,17 @@ class MysqliDb
         $this->reset();
         $this->currentPage = $page;
         return $res;
+    }
+
+    /**
+     * This method allows you to retrieve paginated rows for preset table / columns
+     *
+     * @param int $page The page number to retrieve.
+     * @return array The paginated results.
+     */
+    public function page($page)
+    {
+        return $this->paginate($this->modelTable, $page, $this->modelSelect ?? '*');
     }
 
     /**
