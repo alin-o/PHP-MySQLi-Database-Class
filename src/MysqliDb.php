@@ -827,7 +827,7 @@ class MysqliDb
      * @return array Contains the returned rows from the select query.
      * @throws DbException
      */
-    public function getOne(string $tableName, string $columns = null)
+    public function getOne(string $tableName = null, string $columns = null)
     {
         $res = $this->get($tableName, 1, $columns);
 
@@ -837,6 +837,17 @@ class MysqliDb
             return $res[0];
         } elseif ($res) {
             return $res;
+        }
+
+        return null;
+    }
+
+    public function first(string $tableName = null, string $columns = null)
+    {
+        $res = $this->get($tableName, 1, $columns);
+
+        if (is_array($res) && isset($res[0])) {
+            return $res[0];
         }
 
         return null;
