@@ -1001,10 +1001,19 @@ class MysqliDb
             $this->startTransaction();
         }
 
+        $update = $this->_updateColumns;
+        unset($this->_updateColumns);
+
         foreach ($multiInsertData as $insertData) {
             if (!empty($dataKeys)) {
                 // apply column-names if given, else assume they're already given in the data
                 $insertData = array_combine($dataKeys, $insertData);
+            }
+
+            if (!empty($update)) {
+                foreach ($update as $key) {
+                    $this->_updateColumns[$key] = $insertData[$key] ?? null;
+                }
             }
 
             $id = $this->insert($tableName, $insertData);
