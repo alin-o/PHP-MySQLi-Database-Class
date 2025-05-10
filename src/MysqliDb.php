@@ -1011,8 +1011,13 @@ class MysqliDb
             }
 
             if (!empty($update)) {
-                foreach ($update as $key) {
-                    $this->_updateColumns[$key] = $insertData[$key] ?? null;
+                foreach ($update as $key => $value) {
+                    if (is_numeric($key)) {
+                        $key = $value;
+                        $this->_updateColumns[$key] = $insertData[$key] ?? null;
+                    } else {
+                        $this->_updateColumns[$key] = $value;
+                    }
                 }
             }
 
