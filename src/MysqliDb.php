@@ -1001,7 +1001,7 @@ class MysqliDb
             $this->startTransaction();
         }
 
-        $update = $this->_updateColumns;
+        $update = @$this->_updateColumns;
         unset($this->_updateColumns);
 
         foreach ($multiInsertData as $insertData) {
