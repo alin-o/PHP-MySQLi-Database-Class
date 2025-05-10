@@ -1001,8 +1001,8 @@ class MysqliDb
             $this->startTransaction();
         }
 
-        $update = @$this->_updateColumns;
-        unset($this->_updateColumns);
+        $update = $this->_updateColumns;
+        $this->_updateColumns = null;
 
         foreach ($multiInsertData as $insertData) {
             if (!empty($dataKeys)) {
