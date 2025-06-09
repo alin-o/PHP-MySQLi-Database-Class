@@ -14,7 +14,7 @@ namespace AlinO\Db;
  * @copyright Copyright (c) 2010-2025
  * @license   http://opensource.org/licenses/gpl-3.0.html GNU Public License
  * @link      http://github.com/alin-o/PHP-MySQLi-Database-Class
- * @version   3.1.0
+ * @version   3.1.8
  */
 
 class MysqliDb
@@ -782,7 +782,7 @@ class MysqliDb
      * @return array|MysqliDb Contains the returned rows from the select query.
      * @throws DbException
      */
-    public function get(string $tableName = null, $numRows = null, string $columns = null)
+    public function get(?string $tableName = null, $numRows = null, ?string $columns = null)
     {
         if (empty($tableName)) {
             $tableName = $this->modelTable;
@@ -828,7 +828,7 @@ class MysqliDb
      * @return array Contains the returned rows from the select query.
      * @throws DbException
      */
-    public function getOne(string $tableName = null, string $columns = null)
+    public function getOne(?string $tableName = null, ?string $columns = null)
     {
         $res = $this->get($tableName, 1, $columns);
 
@@ -935,7 +935,7 @@ class MysqliDb
      * @param string $tableName The name of the table.
      * @param string|null $select The select statement.
      */
-    public function setModel(string $modelClass, string $tableName, string $select = null)
+    public function setModel(string $modelClass, string $tableName, ?string $select = null)
     {
         $this->modelClass = $modelClass;
         $this->modelTable = $tableName;
