@@ -852,13 +852,64 @@ class MysqliDb
         if (empty($this->modelClass)) {
             return null;
         }
-        $res = $this->get($this->modelTable, 1, $this->modelSelect);
+        $res = $this->getOne($this->modelTable, $this->modelSelect);
 
         if (is_array($res) && isset($res[0])) {
             return new $this->modelClass($res[0]);
         }
 
         return null;
+    }
+
+    /**
+     * A convenient function to get a model instance of all records.
+     * Requires a previous setModel() call
+     */
+    public function all(): ?array
+    {
+        if (empty($this->modelClass)) {
+            return null;
+        }
+        $data = $this->get($this->modelTable, null, $this->modelSelect);
+
+        if (is_array($data)) {
+            $res = array();
+            foreach ($data as $row) {
+                $res[] = new $this->modelClass($row);
+            }
+            return $res;
+        }
+
+        return null;
+    }
+
+
+    /**
+     * A method to hydrate given object data with model class
+     * @param array $data
+     */
+    public function hydrateOne(array $data): ?object
+    {
+        if (empty($this->modelClass)) {
+            return null;
+        }
+        return new $this->modelClass($data);
+    }
+
+    /**
+     * A method to hydrate given array of objects with model class
+     * @param array $data
+     */
+    public function hydrate(array $data): ?array
+    {
+        if (empty($this->modelClass)) {
+            return null;
+        }
+        $res = array();
+        foreach ($data as $row) {
+            $res[] = new $this->modelClass($row);
+        }
+        return $res;
     }
 
     /**
