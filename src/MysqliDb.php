@@ -854,8 +854,8 @@ class MysqliDb
         }
         $res = $this->getOne($this->modelTable, $this->modelSelect);
 
-        if (is_array($res) && isset($res[0])) {
-            return new $this->modelClass($res[0]);
+        if (is_array($res)) {
+            return new $this->modelClass($res);
         }
 
         return null;
