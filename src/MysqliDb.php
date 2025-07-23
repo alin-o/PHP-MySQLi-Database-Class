@@ -283,11 +283,11 @@ class MysqliDb
      * @param int    $port
      * @param string $charset
      * @param string $socket
+     * @param string $prefix
+     * @param bool   $isSubQuery
      */
-    public function __construct($host = null, $username = null, $password = null, $db = null, $port = null, $charset = 'utf8', $socket = null)
+    public function __construct($host = null, $username = null, $password = null, $db = null, $port = null, $charset = 'utf8', $socket = null, $prefix = '', $isSubQuery = false)
     {
-        $isSubQuery = false;
-
         // if params were passed as array
         if (is_array($host)) {
             foreach ($host as $key => $val) {
@@ -305,13 +305,10 @@ class MysqliDb
             'charset' => $charset
         ));
 
-        if ($isSubQuery) {
-            $this->isSubQuery = true;
-            return;
-        }
+        $this->isSubQuery = $isSubQuery;
 
-        if (isset($prefix)) {
-            $this->setPrefix($prefix);
+        if (!empty($prefix)) {
+            self::$prefix = $prefix;
         }
 
         self::$_instance = $this;
@@ -1760,7 +1757,7 @@ class MysqliDb
     private function _buildInsert($tableName, $insertData, $operation)
     {
         if ($this->isSubQuery) {
-            return;
+            return false;
         }
 
         $this->_query = $operation . " " . implode(' ', $this->_queryOptions) . " INTO " . self::$prefix . $tableName;
@@ -1784,7 +1781,8 @@ class MysqliDb
             return $stmt->insert_id;
         }
 
-        return true;
+        // If no insert id, return number of affected rows
+        return $stmt->affected_rows > 0 ? $stmt->affected_rows : true;
     }
 
     /**
