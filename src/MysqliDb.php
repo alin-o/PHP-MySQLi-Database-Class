@@ -1413,7 +1413,7 @@ class MysqliDb
         }
 
         // Create default values
-        $settings             = array("linesToIgnore" => 0);
+        $settings = array("linesToIgnore" => 0);
 
         // Check the import settings
         if (gettype($importSettings) == "array") {
@@ -1573,7 +1573,7 @@ class MysqliDb
 
         // Execute the query unprepared because LOCK only works with unprepared statements.
         $result = $this->queryUnprepared($this->_query);
-        $errno  = $this->mysqli()->errno;
+        $errno = $this->mysqli()->errno;
 
         // Reset the query
         $this->reset();
@@ -1608,7 +1608,7 @@ class MysqliDb
 
         // Execute the query unprepared because UNLOCK and LOCK only works with unprepared statements.
         $result = $this->queryUnprepared($this->_query);
-        $errno  = $this->mysqli()->errno;
+        $errno = $this->mysqli()->errno;
 
         // Reset the query
         $this->reset();
@@ -1923,7 +1923,8 @@ class MysqliDb
                     $res = new \ArrayIterator($result);
                     $res->seek($res->count() - 1);
                     $results[$row[$this->_mapKey]] = $res->current();
-                } else $results[$row[$this->_mapKey]] = count($row) > 2 ? $result : end($result);
+                } else
+                    $results[$row[$this->_mapKey]] = count($row) > 2 ? $result : end($result);
             } else {
                 array_push($results, $result);
             }
@@ -2469,7 +2470,7 @@ class MysqliDb
      */
     public function not($col = null)
     {
-        return array("[N]" => (string)$col);
+        return array("[N]" => (string) $col);
     }
 
     /**
@@ -2757,7 +2758,7 @@ class MysqliDb
             return;
 
         foreach ($this->_join as $data) {
-            list($joinType,  $joinTable, $joinCondition) = $data;
+            list($joinType, $joinTable, $joinCondition) = $data;
 
             if (is_object($joinTable))
                 $joinStr = $this->_buildPair("", $joinTable);
@@ -2905,6 +2906,48 @@ class MysqliDb
     {
         $this->setQueryOption('IGNORE');
         return $this;
+    }
+
+    /**
+     * Snapshots the current query builder state and resets it.
+     * Useful for running side-queries (atomic operations) without disturbing a pending main query.
+     *
+     * @return array The snapshot of the state
+     */
+    public function saveQueryState()
+    {
+        $state = array(
+            '_where' => $this->_where,
+            '_having' => $this->_having,
+            '_join' => $this->_join,
+            '_joinAnd' => $this->_joinAnd,
+            '_orderBy' => $this->_orderBy,
+            '_groupBy' => $this->_groupBy,
+            '_bindParams' => $this->_bindParams,
+            '_queryOptions' => $this->_queryOptions,
+            'returnType' => $this->returnType,
+            '_nestJoin' => $this->_nestJoin,
+            '_forUpdate' => $this->_forUpdate,
+            '_forUpdateSkipLocked' => $this->_forUpdateSkipLocked,
+            '_lockInShareMode' => $this->_lockInShareMode,
+            '_tableName' => $this->_tableName,
+            '_updateColumns' => $this->_updateColumns,
+            '_mapKey' => $this->_mapKey
+        );
+        $this->reset();
+        return $state;
+    }
+
+    /**
+     * Restores a previously saved query builder state.
+     *
+     * @param array $state The state snapshot
+     */
+    public function restoreQueryState($state)
+    {
+        foreach ($state as $key => $value) {
+            $this->$key = $value;
+        }
     }
 }
 
