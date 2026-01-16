@@ -14,7 +14,7 @@ namespace AlinO\Db;
  * @copyright Copyright (c) 2010-2025
  * @license   http://opensource.org/licenses/gpl-3.0.html GNU Public License
  * @link      http://github.com/alin-o/PHP-MySQLi-Database-Class
- * @version   3.2.2
+ * @version   3.2.3
  */
 
 class MysqliDb
@@ -2380,7 +2380,8 @@ class MysqliDb
                 }
             } else {
                 // MySQL requires a limit if offset is present. Use a large number.
-                $numRows = array($this->_offset, 18446744073709551615);
+                // We use a safe large number that fits in a 64-bit integer.
+                $numRows = array($this->_offset, 9223372036854775807); // PHP_INT_MAX
             }
         }
 
