@@ -14,7 +14,7 @@ namespace AlinO\Db;
  * @copyright Copyright (c) 2010-2025
  * @license   http://opensource.org/licenses/gpl-3.0.html GNU Public License
  * @link      http://github.com/alin-o/PHP-MySQLi-Database-Class
- * @version   3.1.8
+ * @version   3.2.2
  */
 
 class MysqliDb
@@ -117,6 +117,21 @@ class MysqliDb
      * @var string
      */
     protected $_tableLockMethod = "READ";
+
+    /**
+     * Variable which holds the current limit
+     *
+     * @var int|array
+     */
+    protected $_limit = null;
+
+    /**
+     * Variable which holds the current offset
+     *
+     * @var int
+     */
+    protected $_offset = null;
+
 
     /**
      * Dynamic array that holds a combination of where condition/table data value types and parameter references
@@ -485,6 +500,8 @@ class MysqliDb
         $this->_mapKey = null;
         $this->modelSelect = null;
         $this->modelTable = null;
+        $this->_limit = null;
+        $this->_offset = null;
         if (!$this->_transaction_in_progress) {
             $this->defConnectionName = 'default';
         }
@@ -843,23 +860,7 @@ class MysqliDb
         return null;
     }
 
-    /**
-     * A convenient function to get a model instance of one record.
-     * Requires a previous setModel() call
-     */
-    public function first(): ?object
-    {
-        if (empty($this->modelClass)) {
-            return null;
-        }
-        $res = $this->getOne($this->modelTable, $this->modelSelect);
 
-        if (is_array($res)) {
-            return new $this->modelClass($res);
-        }
-
-        return null;
-    }
 
     /**
      * A convenient function to get a model instance of all records.
@@ -993,6 +994,94 @@ class MysqliDb
         $this->modelSelect = $select;
         return $this;
     }
+
+    /**
+     * Get the first result. Alias for getOne().
+     * 
+     * @param string|array|null $columns
+     * @return array|object|null
+     */
+    public function first($columns = null)
+    {
+        $cols = $columns ?: ($this->modelSelect ?? null);
+        $res = $this->getOne($this->modelTable, $cols);
+
+        if (empty($this->modelClass)) {
+            return $res;
+        }
+
+        if (is_array($res)) {
+            return new $this->modelClass($res);
+        }
+
+        return null;
+    }
+
+    /**
+     * Find a record by its ID.
+     * Assumes 'id' as primary key unless model configuration suggests otherwise?
+     * MysqliDb doesn't know about model config directly, but uses simple 'id'. 
+     * 
+     * @param mixed $id
+     * @return array|object|null
+     */
+    public function find($id)
+    {
+        return $this->where('id', $id)->first();
+    }
+
+    /**
+     * Determine if any rows exist for the current query.
+     * 
+     * @return bool
+     */
+    public function exists()
+    {
+        $res = $this->getOne($this->modelTable, '1');
+        return $this->count > 0;
+    }
+
+    /**
+     * Get a single column's value from the first result.
+     * 
+     * @param string $column
+     * @return mixed
+     */
+    public function value($column)
+    {
+        $result = $this->ArrayBuilder()->getOne($this->modelTable, $column);
+        if ($result && isset($result[$column])) {
+            return $result[$column];
+        }
+        return null;
+    }
+
+    /**
+     * Get an array with the values of a given column.
+     * 
+     * @param string $column
+     * @param string|null $key
+     * @return array
+     */
+    public function pluck($column, $key = null)
+    {
+        $results = $this->ArrayBuilder()->get($this->modelTable, null, $column . ($key ? ", $key" : ""));
+
+        if (!$results) {
+            return [];
+        }
+
+        $pluck = [];
+        foreach ($results as $row) {
+            if ($key && isset($row[$key])) {
+                $pluck[$row[$key]] = $row[$column];
+            } else {
+                $pluck[] = $row[$column];
+            }
+        }
+        return $pluck;
+    }
+
 
     /**
      * Set the table for the next database operation.
@@ -1493,6 +1582,19 @@ class MysqliDb
     }
 
     /**
+     * This method allows you to specify a visual ORDER BY DESC statement for SQL queries.
+     *
+     * @param string $orderByField The name of the database field.
+     *
+     * @return MysqliDb
+     */
+    public function orderByDesc($orderByField)
+    {
+        return $this->orderBy($orderByField, 'DESC');
+    }
+
+
+    /**
      * This method allows you to specify multiple (method chaining optional) GROUP BY statements for SQL queries.
      *
      * @uses $MySqliDb->groupBy('name');
@@ -1507,6 +1609,53 @@ class MysqliDb
 
         $this->_groupBy[] = $groupByField;
         return $this;
+    }
+
+    /**
+     * This method allows you to specify a LIMIT to the query using a fluent interface.
+     * 
+     * @param int|array $numRows Array to define SQL limit in format Array ($offset, $count) or only $count
+     *
+     * @return MysqliDb
+     */
+    public function limit($numRows)
+    {
+        $this->_limit = $numRows;
+        return $this;
+    }
+
+    /**
+     * Alias for limit().
+     *
+     * @param int $value
+     * @return MysqliDb
+     */
+    public function take($value)
+    {
+        return $this->limit($value);
+    }
+
+    /**
+     * Set the offset for the query.
+     *
+     * @param int $value
+     * @return MysqliDb
+     */
+    public function offset($value)
+    {
+        $this->_offset = $value;
+        return $this;
+    }
+
+    /**
+     * Alias for offset().
+     *
+     * @param int $value
+     * @return MysqliDb
+     */
+    public function skip($value)
+    {
+        return $this->offset($value);
     }
 
 
@@ -2218,6 +2367,23 @@ class MysqliDb
      */
     protected function _buildLimit($numRows)
     {
+        if (!isset($numRows) && isset($this->_limit)) {
+            $numRows = $this->_limit;
+        }
+
+        if (isset($this->_offset)) {
+            if (isset($numRows)) {
+                if (!is_array($numRows)) {
+                    $numRows = array($this->_offset, $numRows);
+                } else {
+                    $numRows[0] = $this->_offset;
+                }
+            } else {
+                // MySQL requires a limit if offset is present. Use a large number.
+                $numRows = array($this->_offset, 18446744073709551615);
+            }
+        }
+
         if (!isset($numRows)) {
             return;
         }
