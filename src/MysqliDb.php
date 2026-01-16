@@ -1416,7 +1416,7 @@ class MysqliDb
      *
      * @param string $importTable    The database table where the data will be imported into.
      * @param string $importFile     The file to be imported. Please use double backslashes \\ and make sure you
-     * @param string $importSettings optional An Array defining the import settings as described in the README.md
+     * @param array $importSettings optional An Array defining the import settings as described in the README.md
      *
      * @return boolean
      * @throws DbException
@@ -1487,7 +1487,7 @@ class MysqliDb
      *
      * @param  string $importTable    The table in which the data will be imported to.
      * @param  string $importFile     The file which contains the .XML data.
-     * @param  string $importSettings optional An Array defining the import settings as described in the README.md
+     * @param  array $importSettings optional An Array defining the import settings as described in the README.md
      *
      * @return boolean Returns true if the import succeeded, false if it failed.
      * @throws DbException
