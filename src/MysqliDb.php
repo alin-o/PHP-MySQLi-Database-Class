@@ -3116,6 +3116,11 @@ class MysqliDb
             $this->$key = $value;
         }
     }
+
+    public function hasWhere()
+    {
+        return !empty($this->_where);
+    }
 }
 
 // END class
