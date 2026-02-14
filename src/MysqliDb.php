@@ -2169,8 +2169,16 @@ class MysqliDb
             $val = $value[$key];
             switch ($key) {
                 case 'AES':
-                    $this->_bindParam($val);
-                    $this->_query .= "AES_ENCRYPT(?, @aes_key), ";
+                    if (is_array($val) && isset($val['value'])) {
+                        // New format with IV: ['value' => plaintext, 'iv' => binary_iv]
+                        $this->_bindParam($val['value']);
+                        $this->_bindParam($val['iv']);
+                        $this->_query .= "AES_ENCRYPT(?, @aes_key, ?), ";
+                    } else {
+                        // Legacy format: scalar value (no IV)
+                        $this->_bindParam($val);
+                        $this->_query .= "AES_ENCRYPT(?, @aes_key), ";
+                    }
                     break;
                 case '[I]':
                     $this->_query .= $column . $val . ", ";
