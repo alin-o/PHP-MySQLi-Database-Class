@@ -243,7 +243,7 @@ class MysqliDb
      * Variables for query execution tracing
      */
     protected $traceStartQ = 0;
-    protected $traceEnabled = false;
+    public $traceEnabled = false;
     protected $traceStripPrefix = '';
     public $trace = array();
 
