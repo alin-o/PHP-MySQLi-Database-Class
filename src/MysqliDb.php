@@ -914,6 +914,19 @@ class MysqliDb
     }
 
     /**
+     * A convenient function to get a count of records.
+     *
+     * @param string $tableName The name of the database table to work with.
+     *
+     * @return int
+     * @throws DbException
+     */
+    public function count(?string $tableName = null): int
+    {
+        return (int) $this->getValue($tableName, 'COUNT(*)');
+    }
+
+    /**
      * A convenient SELECT COLUMN function to get a single column value from one row
      *
      * @param string $tableName The name of the database table to work with.
