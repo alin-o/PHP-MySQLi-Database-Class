@@ -2169,7 +2169,7 @@ class MysqliDb
             $val = $value[$key];
             switch ($key) {
                 case 'AES':
-                    if (is_array($val) && isset($val['value'])) {
+                    if (is_array($val) && array_key_exists('value', $val)) {
                         // New format with IV: ['value' => plaintext, 'iv' => binary_iv]
                         $this->_bindParam($val['value']);
                         $this->_bindParam($val['iv']);
